@@ -126,7 +126,7 @@
         <!-- Thanh công cụ góc phải: Nút Mute nhanh & Nút Cài Đặt (Bánh Răng) -->
         <div class="flex items-center gap-2">
             <button id="btn-quick-mute" onclick="toggleMasterMute()" title="Bật / Tắt âm thanh" class="w-10 h-10 rounded-2xl bg-slate-800/90 hover:bg-slate-700/90 border border-amber-500/30 flex items-center justify-center text-amber-300 transition transform active:scale-95 shadow-md">
-                <i id="quick-mute-icon" class="fa-solid fa-volume-xmark text-sm text-red-400"></i>
+                <i id="quick-mute-icon" class="fa-solid fa-volume-high text-sm text-amber-300"></i>
             </button>
 
             <!-- ICON BÁNH RĂNG CÀI ĐẶT DUY NHẤT CHỨA TOÀN BỘ CẤU HÌNH -->
@@ -140,7 +140,7 @@
     <main class="relative z-10 flex-1 max-w-xl w-full mx-auto p-4 flex flex-col justify-center">
 
         <!-- ==================== VIEW 1: MÀN HÌNH BẮT ĐẦU (ĐÃ DỌN DẸP SẠCH SẼ) ==================== -->
-        <section id="game-start-screen" class="w-full hidden">
+        <section id="game-start-screen" class="w-full">
             <div class="bg-slate-900/90 backdrop-blur-md border-2 border-yellow-400/70 rounded-3xl p-6 sm:p-10 text-center shadow-2xl relative overflow-hidden">
                 <!-- Hiệu ứng sáng viền nền -->
                 <div class="absolute -top-10 -left-10 w-36 h-36 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
@@ -176,7 +176,7 @@
         </section>
 
         <!-- ==================== VIEW 2: MÀN HÌNH CHƠI ĐỐ VUI ==================== -->
-        <section id="game-play-screen" class="w-full">
+        <section id="game-play-screen" class="w-full hidden">
             <div class="bg-slate-900/90 backdrop-blur-md border-2 border-yellow-400/60 rounded-3xl p-5 sm:p-7 shadow-2xl">
                 <!-- Thanh thông số câu hỏi -->
                 <div class="flex items-center justify-between gap-3 pb-3 border-b border-slate-700/80 mb-3">
@@ -288,7 +288,7 @@
     </main>
 
     <!-- ==================== MODAL CÀI ĐẶT TOÀN DIỆN (SETTINGS MODAL) ==================== -->
-    <div id="modal-settings" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
+    <div id="modal-settings" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
         <div class="bg-slate-900 border-2 border-yellow-400/80 rounded-3xl max-w-2xl w-full max-h-[92vh] flex flex-col shadow-2xl text-slate-100 overflow-hidden">
             
             <!-- Tiêu đề Modal -->
@@ -644,6 +644,26 @@
                 window.removeEventListener(evt, handler);
             }, { passive: true });
         });
+
+        // Tự động bật nhạc nền khi mở ứng dụng. Trình duyệt có thể chặn autoplay;
+        // khi đó nhạc sẽ tự bắt đầu ở lần chạm/click đầu tiên.
+        function startBackgroundMusicOnOpen() {
+            isMasterMuted = false;
+            isBgmPlaying = true;
+            const icon = document.getElementById('quick-mute-icon');
+            if (icon) icon.className = 'fa-solid fa-volume-high text-sm text-amber-300';
+            try {
+                if (audioConfig.bgmBase64) {
+                    bgmAudioTag.src = audioConfig.bgmBase64;
+                    bgmAudioTag.loop = true;
+                    bgmAudioTag.volume = audioConfig.bgmVol;
+                    const playPromise = bgmAudioTag.play();
+                    if (playPromise && typeof playPromise.catch === 'function') playPromise.catch(() => {});
+                } else {
+                    playNextAutumnBgmNote();
+                }
+            } catch (e) {}
+        }
 
         function toggleMasterMute() {
             unlockAudioEngine();
@@ -1678,6 +1698,7 @@
         // Khởi chạy khi DOM sẵn sàng
         window.addEventListener('DOMContentLoaded', () => {
             loadQuizData();
+            startBackgroundMusicOnOpen();
         });
     </script>
 
